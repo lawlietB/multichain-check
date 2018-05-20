@@ -1,0 +1,8 @@
+.nav > li > a.pair-first {padding-right:1px;}
+.nav > li > a.pair-center {padding-left:0;padding-right:0;}
+.nav > li > a.pair-last {padding-left:0;}
+.bg-success {background-color: #ccffbb; border:1px solid #cccccc;}
+.bg-danger {background-color: #ffbbcc; border:1px solid #cccccc;}
+.highlight {padding:0.5em; background-color:#dff0d8;}
+.table-break-words {table-layout:fixed; width:100%;}
+.td-break-words {word-wrap: break-word;}
