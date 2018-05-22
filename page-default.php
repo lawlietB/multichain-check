@@ -1,9 +1,32 @@
+<div>
 <form class="form-horizontal" method="post" enctype="multipart/form-data" action="./?chain=<?php echo html($_GET['chain'])?>&page=list">
 		<div class="col-sm-offset-2 col-sm-9">
 			<input class="form-control" name="name" id="name" placeholder="Nhập tên văn bằng/chứng chỉ để kiểm tra" type="text" value="">
+			<lable> Hoặc Chọn file để kiểm tra:</lable>
+			<input type="file" name="fileToUpload" id="fileToUpload"><br>	
 			<input class="btn btn-default" type="submit" name="check" value="Kiểm tra">
 		</div>
 </form>
+</div>
+
+<?php
+require_once("pdf2text.php");
+$file_name = '';
+    if (isset($_POST['check']))
+    {
+        if (isset($_FILES['fileToUpload']))
+        {
+            if ($_FILES['fileToUpload']['error'] > 0)
+            {
+                echo 'File Upload Is Error';
+            }
+            else{
+				move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $_FILES['fileToUpload']['name']);
+				$file_name = $_FILES['fileToUpload']['name'];
+            }
+        }
+    }
+?>
 
 <?php
 	define('const_issue_custom_fields', 15);
@@ -15,7 +38,32 @@
 	$name_issue = '';
 		
 	if (@$_POST['check']) {
-		$name_issue = $_POST['name'];
+		$check='';
+		if (isset($_FILES['fileToUpload']))
+		{
+			if ($_FILES['fileToUpload']['error'] > 0)
+            {
+                
+            }
+            else{
+				$result = pdf2text($file_name);
+				$len = strlen($result);
+				for($i = 0; $i < $len; $i++)
+				{
+					if ($result[$i] == ';')
+						break;
+					if($i % 2 == 1)
+						$check .= $result[$i];
+				}	
+            }
+		}
+		
+		$name_issue = $check;
+		
+		if($_POST['name'] != NULL)
+			$name_issue = $_POST['name'];
+			
+		shell_exec('rm -r '.$file_name);
 	}
 
 	$getinfo=multichain_getinfo();
@@ -59,6 +107,9 @@ if(count($issueaddresses) > 0){
 					<h3>Kết quả</h3>
 			
 <?php
+
+
+
 	if (no_displayed_error_result($listassets, multichain('listassets', $name_issue, true))) {
 
 		foreach ($listassets as $asset) {
