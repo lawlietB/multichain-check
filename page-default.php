@@ -59,8 +59,6 @@ $file_name = '';
 		}
 		
 		$name_issue = $check;
-
-		echo $name_issue;
 		
 		if($_POST['name'] != NULL)
 			$name_issue = trim($_POST['name']);
