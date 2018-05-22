@@ -18,7 +18,7 @@ $file_name = '';
         {
             if ($_FILES['fileToUpload']['error'] > 0)
             {
-                echo 'File Upload Is Error';
+
             }
             else{
 				move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $_FILES['fileToUpload']['name']);
@@ -59,9 +59,11 @@ $file_name = '';
 		}
 		
 		$name_issue = $check;
+
+		echo $name_issue;
 		
 		if($_POST['name'] != NULL)
-			$name_issue = $_POST['name'];
+			$name_issue = trim($_POST['name']);
 			
 		shell_exec('rm -r '.$file_name);
 	}
