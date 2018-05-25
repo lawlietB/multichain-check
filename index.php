@@ -39,6 +39,7 @@
 				<div id="navbar" class="navbar-collapse collapse">
 					<ul class="nav navbar-nav">
 						<li><a href="./?chain=<?php echo html($chain)?>" class="pair-first">Kiểm tra thông tin</a></li>
+						<li><a href="./?chain=<?php echo html($chain)?>&page=nodeinfo" class="pair-first">NodeInfo</a></li>
 					</ul>
 				</div>
 			</nav>
@@ -48,6 +49,7 @@
 		
 		switch (@$_GET['page']) {
 			case 'label':
+			case 'nodeinfo':
 			case 'asset-file':
 				require_once 'page-'.$_GET['page'].'.php';
 				break;

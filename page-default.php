@@ -1,13 +1,15 @@
-<div>
-<form class="form-horizontal" method="post" enctype="multipart/form-data" action="./?chain=<?php echo html($_GET['chain'])?>&page=list">
+<div class="form-group col-sm-12 col-md-12">
+	<form class="form-horizontal" method="post" enctype="multipart/form-data" action="./?chain=<?php echo html($_GET['chain'])?>&page=list">
 		<div class="col-sm-offset-2 col-sm-9">
 			<input class="form-control" name="name" id="name" placeholder="Nhập tên văn bằng/chứng chỉ để kiểm tra" type="text" value="">
 			<lable> Hoặc Chọn file để kiểm tra:</lable>
 			<input type="file" name="fileToUpload" id="fileToUpload"><br>	
 			<input class="btn btn-default" type="submit" name="check" value="Kiểm tra">
 		</div>
-</form>
+	</form>
 </div>
+
+
 
 <?php
 require_once("pdf2text.php");
@@ -18,7 +20,6 @@ $file_name = '';
         {
             if ($_FILES['fileToUpload']['error'] > 0)
             {
-
             }
             else{
 				move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $_FILES['fileToUpload']['name']);
@@ -36,9 +37,9 @@ $file_name = '';
 	$success=false; // set default value
 
 	$name_issue = '';
+	$data = '';
 		
 	if (@$_POST['check']) {
-		$check='';
 		if (isset($_FILES['fileToUpload']))
 		{
 			if ($_FILES['fileToUpload']['error'] > 0)
@@ -48,18 +49,25 @@ $file_name = '';
             else{
 				$result = pdf2text($file_name);
 				$len = strlen($result);
-				for($i = 0; $i < $len; $i++)
+				$i = 0;
+				for($i; $i < $len; $i++)
+				{
+					if ($result[$i] == ':')
+						break;
+					if($i % 2 == 1)
+						$name_issue .= $result[$i];
+				}
+				$i += 2;
+				for($i; $i < $len; $i++)
 				{
 					if ($result[$i] == ';')
 						break;
 					if($i % 2 == 1)
-						$check .= $result[$i];
+						$data .= $result[$i];
 				}	
             }
 		}
-		
-		$name_issue = $check;
-		
+				
 		if($_POST['name'] != NULL)
 			$name_issue = trim($_POST['name']);
 			
@@ -89,109 +97,118 @@ $file_name = '';
 
 		$labels=multichain_labels();
 	}
-?>
 
-			<div class="row">
-<?php
-//check admin
-if(count($issueaddresses) > 0){
-?>
-				<div class="col-sm-6">
-<?php
-}else{
-?>
-				<div class="col-sm-10">
-<?php
-}
-?>
-					<h3>Kết quả</h3>
+	define('const_max_retrieve_items', 1000);
+
+
+	no_displayed_error_result($liststreams, multichain('liststreams', $name_issue, true));
+	no_displayed_error_result($getinfo, multichain('getinfo'));
+	
+	
+	if(isset($liststreams[0]))
+		$viewstream=$liststreams[0];
+	
+	if (isset($viewstream)) {
+		if (isset($_GET['key'])) {
+			$success=no_displayed_error_result($items, multichain('liststreamkeyitems', $viewstream['createtxid'], $_GET['key'], true, const_max_retrieve_items));
+			$success=$success && no_displayed_error_result($keysinfo, multichain('liststreamkeys', $viewstream['createtxid'], $_GET['key']));
+			$countitems=$keysinfo[0]['items'];
+			$suffix=' with key: '.$_GET['key'];
 			
-<?php
+		} elseif (isset($_GET['publisher'])) {
+			$success=no_displayed_error_result($items, multichain('liststreampublisheritems', $viewstream['createtxid'], $_GET['publisher'], true, const_max_retrieve_items));
+			$success=$success && no_displayed_error_result($publishersinfo, multichain('liststreampublishers', $viewstream['createtxid'], $_GET['publisher']));
+			$countitems=$publishersinfo[0]['items'];
+			$suffix=' with publisher: '.$_GET['publisher'];
+		
+		} else {
+			$success=no_displayed_error_result($items, multichain('liststreamitems', $viewstream['createtxid'], true, const_max_retrieve_items));
+			$countitems=$viewstream['items'];
+			$suffix='';
+		}
 
+		//Check data is match
+		$check_data = false;
+		if($data == $items[0]['data'])
+			$check_data = true;
 
+		if($check_data == false)
+		{
+			echo '<div class="bg-danger" style="padding:1em;">Thông tin không chính xác hoặc đây là bằng/chứng chỉ giả<br/></div>';
+		}
 
-	if (no_displayed_error_result($listassets, multichain('listassets', $name_issue, true))) {
-
-		foreach ($listassets as $asset) {
-			$name=$asset['name'];
-			$issuer=$asset['issues'][0]['issuers'][0];
+		if ($success && $check_data) {		
 ?>
-						<table class="table table-bordered table-condensed table-break-words <?php echo ($success && ($name==@$_POST['name'])) ? 'bg-success' : 'table-striped'?>">
-							<tr>
-								<th style="width:30%;">Tên chứng chỉ</th>
-								<td><?php echo html($name)?> <?php echo $asset['open'] ? '' : '(closed)'?></td>
-							</tr>
-							<tr>
-								<th>School Address</th>
-								<td class="td-break-words small"><?php echo format_address_html($issuer, @$keymyaddresses[$issuer], $labels)?></td>
-							</tr>
+				
+				<div class="col-sm-8">
+					<h3>Kết quả: <?php echo html($viewstream['name'])?> &ndash; <?php echo count($items)?> of <?php echo $countitems?> <?php echo ($countitems==1) ? 'item' : 'items'?><?php echo html($suffix)?></h3>
 <?php
-			$details=array();
-			$detailshistory=array();
+			$oneoutput=false;
+			$items=array_reverse($items); // show most recent first
 			
-			foreach ($asset['issues'] as $issue)
-				foreach ($issue['details'] as $key => $value) {
-					$detailshistory[$key][$issue['txid']]=$value;
-					$details[$key]=$value;
-				}
-			
-			if (count(@$detailshistory['@file'])) {
+			foreach ($items as $item) {
+				$oneoutput=true;
 ?>
-							<tr>
-								<th>File:</th>
-								<td><?php
-								
-				$countoutput=0;
-				$countprevious=count($detailshistory['@file'])-1;
-
-				foreach ($detailshistory['@file'] as $txid => $string) {
-					$fileref=string_to_fileref($string);
-					if (is_array($fileref)) {
+					<table class="table table-bordered table-condensed table-striped table-break-words">
+						<tr>
+							<th style="width:15%;">Publishers</th>
+							<td><?php
+							
+				foreach ($item['publishers'] as $publisher) {
+					$link='./?chain='.$_GET['chain'].'&page='.$_GET['page'].'&stream='.$viewstream['createtxid'].'&publisher='.$publisher;
 					
-						$file_name=$fileref['filename'];
-						$file_size=$fileref['filesize'];
+							?><?php echo format_address_html($publisher, false, $labels, $link)?><?php
+							
+				}
+							
+							?></td>
+						</tr>
+						<tr>
+							<th>Name</th>
+							<td><a href="./?chain=<?php echo html($_GET['chain'])?>&page=<?php echo html($_GET['page'])?>&stream=<?php echo html($viewstream['createtxid'])?>&key=<?php echo html($item['key'])?>"><?php echo html($item['key'])?></a></td>
+						</tr>
+						<tr>
+							<th>Data</th>
+							<td><?php
+				
+				if (is_array($item['data'])) { // long data item
+					if (no_displayed_error_result($txoutdata, multichain('gettxoutdata', $item['data']['txid'], $item['data']['vout'], 1024))) // get prefix only for file name
+						$binary=pack('H*', $txoutdata);
+					else
+						$binary='';
 						
-						if ($countoutput==1) // first previous version
-							echo '<br/><small>('.$countprevious.' previous '.(($countprevious>1) ? 'files' : 'file').': ';
-						
-						echo '<a href="./download-file.php?chain='.html($_GET['chain']).'&txid='.html($txid).'&vout='.html($fileref['vout']).'">'.
-							(strlen($file_name) ? html($file_name) : 'Download').
-							'</a>'.
-							( ($file_size && !$countoutput) ? html(' ('.number_format(ceil($file_size/1024)).' KB)') : '');
-						
-						$countoutput++;
-					}
+					$size=$item['data']['size'];
+				
+				} else {
+					$binary=pack('H*', $item['data']);
+					$size=strlen($binary);
 				}
 				
-				if ($countoutput>1)
-					echo ')</small>';
-								
-								?></td>
-							</tr>	
+				$file=txout_bin_to_file($binary);
+					
+				if (is_array($file))
+					echo '<a href="./download-file.php?chain='.html($_GET['chain']).'&txid='.html($item['txid']).'&vout='.html($item['vout']).'">'.
+							(strlen($file['filename']) ? html($file['filename']) : 'Download').
+							'</a>'.' ('.number_format(ceil($size/1024)).' KB)'; // ignore first few bytes of size
+				else
+					echo str_replace(';','<br>',$binary);
+					
+							?></td>
+						</tr>
+						<tr>
+							<th>Added</th>
+							<td><?php echo gmdate('Y-m-d H:i:s', isset($item['blocktime']) ? $item['blocktime'] : $item['time'])?> GMT<?php echo isset($item['blocktime']) ? ' (confirmed)' : ''?></td>
+						</tr>
+					</table>
 <?php
-			}
-			
-			foreach ($details as $key => $value) {
-				if ($key=='@file')
-					continue;
-?>
-							<tr>
-								<th><?php echo html($key)?></th>
-								<td><?php echo html($value)?><?php
-								
-				if (count($detailshistory[$key])>1)
-					echo '<br/><small>(previous values: '.html(implode(', ', array_slice(array_reverse($detailshistory[$key]), 1))).')</small>';
+				}
 				
-								?></td>
-							</tr>
-<?php
-			}
-?>							
-						</table>
+			if (!$oneoutput)
+				echo '<p>No items in stream</p>';
+?>				
+				</div>
+				
 <?php
 		}
 	}
 ?>
-				</div>
-				</div>
-			</div>
