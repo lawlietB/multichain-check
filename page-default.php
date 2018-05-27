@@ -1,11 +1,22 @@
 <div class="form-group col-sm-12 col-md-12">
-	<form class="form-horizontal" method="post" enctype="multipart/form-data" action="./?chain=<?php echo html($_GET['chain'])?>&page=list">
+	<!-- <form class="form-horizontal" method="post" enctype="multipart/form-data" action="./?chain=<?php echo html($_GET['chain'])?>&page=list" novalidate class="box">
 		<div class="col-sm-offset-2 col-sm-9">
-			<input class="form-control" name="name" id="name" placeholder="Nhập tên văn bằng/chứng chỉ để kiểm tra" type="text" value="">
-			<lable> Hoặc Chọn file để kiểm tra:</lable>
+			<lable><b>Chọn file PDF để kiểm tra:</b></lable>
 			<input type="file" name="fileToUpload" id="fileToUpload"><br>	
 			<input class="btn btn-default" type="submit" name="check" value="Kiểm tra">
 		</div>
+		
+	</form> -->
+
+	<form method="post" action="./?chain=<?php echo html($_GET['chain'])?>&page=list" enctype="multipart/form-data" novalidate class="box">			
+		<div class="box__input">
+			<svg class="box__icon" xmlns="http://www.w3.org/2000/svg" width="50" height="43" viewBox="0 0 50 43">
+			<path d="M48.4 26.5c-.9 0-1.7.7-1.7 1.7v11.6h-43.3v-11.6c0-.9-.7-1.7-1.7-1.7s-1.7.7-1.7 1.7v13.2c0 .9.7 1.7 1.7 1.7h46.7c.9 0 1.7-.7 1.7-1.7v-13.2c0-1-.7-1.7-1.7-1.7zm-24.5 6.1c.3.3.8.5 1.2.5.4 0 .9-.2 1.2-.5l10-11.6c.7-.7.7-1.7 0-2.4s-1.7-.7-2.4 0l-7.1 8.3v-25.3c0-.9-.7-1.7-1.7-1.7s-1.7.7-1.7 1.7v25.3l-7.1-8.3c-.7-.7-1.7-.7-2.4 0s-.7 1.7 0 2.4l10 11.6z"/></svg>
+			<input type="file" name="fileToUpload" id="file" class="box__file" data-multiple-caption="{count} files selected" multiple />
+			<label for="file"><strong>Choose a file</strong><span class="box__dragndrop"> or drag it here</span>.</label>
+			<button type="submit" class="box__button" name="check">Upload</button>
+		</div>
+		<input class="btn btn-default" type="submit" name="check" value="Kiểm tra">
 	</form>
 </div>
 
@@ -66,11 +77,7 @@ $file_name = '';
 						$data .= $result[$i];
 				}	
             }
-		}
-				
-		if($_POST['name'] != NULL)
-			$name_issue = trim($_POST['name']);
-			
+		}			
 		shell_exec('rm -r '.$file_name);
 	}
 
