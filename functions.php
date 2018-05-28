@@ -81,7 +81,7 @@
 	
 	function output_rpc_error($error)
 	{
-		echo '<div class="bg-danger" style="padding:1em;">Thông tin không chính xác hoặc đây là bằng/chứng chỉ giả<br/>'.str_replace('Asset with this name not found','Không tìm thấy kết quả cho: ',html($error['message'])).'</div>';
+		echo '<div class="bg-danger" style="padding:1em;">Thông tin không chính xác hoặc đây là bằng/chứng chỉ giả<br/></div>';
 	}
 	
 	function output_success_text($success)
