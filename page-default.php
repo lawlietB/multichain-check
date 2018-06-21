@@ -70,9 +70,9 @@ $file_name = '';
 			if($name_issue == '')
 				$name_issue='_error_';
 		}			
-		shell_exec('rm -r '.$file_name);
+		shell_exec('rm -r '.$file_name); //in linux
+		shell_exec('del /f '.$file_name); //in window
 	}
-
 	$getinfo=multichain_getinfo();
 
 	$issueaddresses=array();
@@ -127,8 +127,7 @@ $file_name = '';
 
 		//Check data is match
 		$check_data = false;
-		
-		if($data == $items[0]['data'])
+		if($data == hash('sha256',$items[0]['data']))
 			$check_data = true;
 		if($check_data == false)
 		{
@@ -147,9 +146,9 @@ $file_name = '';
 			foreach ($items as $item) {
 				$oneoutput=true;
 ?>
-					<table class="table table-bordered table-condensed table-striped table-break-words">
-						<tr>
-							<th style="width:15%;">Publishers</th>
+					<table class="table table-bordered">
+						<tr class="default">
+							<th style="width:15%;">Nhà phát hành</th>
 							<td><?php
 							
 				foreach ($item['publishers'] as $publisher) {
@@ -161,12 +160,12 @@ $file_name = '';
 							
 							?></td>
 						</tr>
-						<tr>
-							<th>Name</th>
+						<tr class="default">
+							<th>Tên</th>
 							<td><a href="./?chain=<?php echo html($_GET['chain'])?>&page=<?php echo html($_GET['page'])?>&stream=<?php echo html($viewstream['createtxid'])?>&key=<?php echo html($item['key'])?>"><?php echo html($item['key'])?></a></td>
 						</tr>
-						<tr>
-							<th>Data</th>
+						<tr class="default">
+							<th>Thông tin</th>
 							<td><?php
 				
 				if (is_array($item['data'])) { // long data item
@@ -193,8 +192,8 @@ $file_name = '';
 					
 							?></td>
 						</tr>
-						<tr>
-							<th>Added</th>
+						<tr class="default">
+							<th>Ngày thêm</th>
 							<td><?php echo gmdate('Y-m-d H:i:s', isset($item['blocktime']) ? $item['blocktime'] : $item['time'])?> GMT<?php echo isset($item['blocktime']) ? ' (confirmed)' : ''?></td>
 						</tr>
 					</table>
