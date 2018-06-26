@@ -39,6 +39,7 @@ $file_name = '';
 
 	$name_issue = '';
 	$data = '';
+	$_data = '';
 		
 	if (@$_POST['check']) {
 		if (isset($_FILES['fileToUpload']))
@@ -55,16 +56,17 @@ $file_name = '';
 				{
 					if ($result[$i] == ':')
 						break;
-					if($i % 2 == 1)
-						$name_issue .= $result[$i];
+					// if($i % 2 == 1)
+					$name_issue .= $result[$i];
 				}
-				$i += 2;
+				$i += 1;
 				for($i; $i < $len; $i++)
 				{
+					// $data .= $result[$i];
 					if ($result[$i] == ';')
 						break;
-					if($i % 2 == 1)
-						$data .= $result[$i];
+					// if($i % 2 == 1)
+					$data .= $result[$i];
 				}	
 			}
 			if($name_issue == '')
